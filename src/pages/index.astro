@@ -1,17 +1,130 @@
 ---
+import Layout from "@/layouts/Layouts.astro";
+import ToolCard from "@/components/Toolcard.astro";
+import { categories, tools } from "@/data/tools";
 
+const imageTools = tools.filter(
+  (tool) => tool.category === "image"
+);
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout
+  title="FileForge — All-in-One File Converter"
+  description="Convert images and files quickly with FileForge."
+>
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,#dbeafe,transparent_40%)] dark:bg-[radial-gradient(circle_at_top,#172554,transparent_40%)]"></div>
+
+    <div class="mx-auto max-w-5xl px-5 py-24 text-center sm:py-32">
+      <div class="mb-6 inline-flex rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-medium text-zinc-600 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+        All-in-One File Converter
+      </div>
+
+      <h1 class="text-4xl font-bold tracking-tight text-zinc-950 sm:text-6xl dark:text-white">
+        Convert your files
+        <span class="text-blue-600">
+          without the hassle.
+        </span>
+      </h1>
+
+      <p class="mx-auto mt-6 max-w-2xl text-base leading-7 text-zinc-500 sm:text-lg dark:text-zinc-400">
+        Convert images, documents, data, audio and video files
+        from one clean interface.
+      </p>
+
+      <div class="mx-auto mt-10 max-w-xl">
+        <input
+          id="tool-search"
+          type="search"
+          placeholder="Search a converter..."
+          class="w-full rounded-xl border border-zinc-200 bg-white px-5 py-4 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-800 dark:bg-zinc-900"
+        />
+      </div>
+    </div>
+  </section>
+
+  <section
+    id="tools"
+    class="mx-auto max-w-7xl px-5 pb-24"
+  >
+    <div class="space-y-16">
+      {categories.map((category) => {
+        const categoryTools = tools.filter(
+          (tool) => tool.category === category.id
+        );
+
+        return (
+          <div
+            class="tool-category"
+            data-category={category.id}
+          >
+            <div class="mb-7">
+              <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">
+                {category.title}
+              </h2>
+
+              <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+                {category.description}
+              </p>
+            </div>
+
+            <div class="tool-grid grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {categoryTools.length > 0 ? (
+                categoryTools.map((tool) => (
+                  <div
+                    class="tool-item"
+                    data-search={`${tool.title} ${tool.description} ${tool.inputFormats.join(" ")} ${tool.outputFormats.join(" ")}`.toLowerCase()}
+                  >
+                    <ToolCard tool={tool} />
+                  </div>
+                ))
+              ) : (
+                <div class="rounded-2xl border border-dashed border-zinc-300 p-8 text-sm text-zinc-500 dark:border-zinc-700">
+                  More tools are coming soon.
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const searchInput = document.getElementById(
+    "tool-search"
+  ) as HTMLInputElement | null;
+
+  const toolItems = Array.from(
+    document.querySelectorAll<HTMLElement>(".tool-item")
+  );
+
+  const categories = Array.from(
+    document.querySelectorAll<HTMLElement>(".tool-category")
+  );
+
+  searchInput?.addEventListener("input", () => {
+    const query = searchInput.value.trim().toLowerCase();
+
+    toolItems.forEach((item) => {
+      const searchable = item.dataset.search ?? "";
+
+      item.classList.toggle(
+        "hidden",
+        query.length > 0 && !searchable.includes(query)
+      );
+    });
+
+    categories.forEach((category) => {
+      const visibleTools = category.querySelectorAll(
+        ".tool-item:not(.hidden)"
+      );
+
+      category.classList.toggle(
+        "hidden",
+        query.length > 0 && visibleTools.length === 0
+      );
+    });
+  });
+</script>

@@ -1,15 +1,15 @@
 import { defineConfig } from "astro/config";
 import node from "@astrojs/node";
 import svelte from "@astrojs/svelte";
-import tailwind from "@astrojs/tailwind";
 
 export default defineConfig({
   output: "server",
   adapter: node({
     mode: "standalone"
   }),
-  integrations: [
-    svelte(),
-    tailwind()
-  ]
+  integrations: [svelte()],
+  server: {
+    host: true,
+    port: 4321
+  }
 });

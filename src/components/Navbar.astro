@@ -1,0 +1,52 @@
+<header class="sticky top-0 z-50 border-b border-zinc-200/70 bg-white/80 backdrop-blur-xl dark:border-zinc-800/70 dark:bg-zinc-950/80">
+  <div class="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
+    <a
+      href="/"
+      class="text-lg font-bold tracking-tight text-zinc-950 dark:text-white"
+    >
+      File<span class="text-blue-600">Forge</span>
+    </a>
+
+    <div class="flex items-center gap-3">
+      <a
+        href="/#tools"
+        class="hidden text-sm font-medium text-zinc-600 hover:text-zinc-950 sm:block dark:text-zinc-400 dark:hover:text-white"
+      >
+        Tools
+      </a>
+
+      <button
+        id="theme-toggle"
+        type="button"
+        aria-label="Toggle dark mode"
+        class="flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200 text-sm transition hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-900"
+      >
+        <span id="theme-icon">☾</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  const button = document.getElementById("theme-toggle");
+  const icon = document.getElementById("theme-icon");
+
+  button?.addEventListener("click", () => {
+    const isDark = document.documentElement.classList.toggle("dark");
+
+    localStorage.setItem(
+      "theme",
+      isDark ? "dark" : "light"
+    );
+
+    if (icon) {
+      icon.textContent = isDark ? "☀" : "☾";
+    }
+  });
+
+  if (icon) {
+    icon.textContent = document.documentElement.classList.contains("dark")
+      ? "☀"
+      : "☾";
+  }
+</script>

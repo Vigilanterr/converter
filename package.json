@@ -14,9 +14,9 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@astrojs/node": "latest",
     "@astrojs/react": "^7.0.0",
     "@astrojs/svelte": "latest",
+    "@astrojs/vercel": "^11.0.11",
     "@resvg/resvg-js": "latest",
     "archiver": "^8.0.0",
     "astro": "latest",

@@ -28,6 +28,12 @@ export const env = {
     import.meta.env.TEMP_FILE_TTL_MINUTES,
     30
   ),
+  /**
+   * Override for the temporary file storage root. Local development uses
+   * `./storage`. Serverless runtimes (Vercel) have a read-only filesystem
+   * except for `/tmp`, so set `STORAGE_DIR=/tmp/darconverter` there.
+   */
+  storageDir: readString(import.meta.env.STORAGE_DIR),
   pdf2docxUrl: readString(import.meta.env.PDF2DOCX_URL)
 };
 

@@ -2,10 +2,13 @@ import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { env } from "./env";
 
 export type StorageKind = "input" | "output" | "temp";
 
-const STORAGE_ROOT = fileURLToPath(new URL("../../storage", import.meta.url));
+const STORAGE_ROOT =
+  env.storageDir ||
+  fileURLToPath(new URL("../../storage", import.meta.url));
 
 const STORED_NAME_PATTERN = /^[0-9a-f-]{36}\.[a-z0-9]{1,8}$/;
 

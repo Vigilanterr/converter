@@ -81,6 +81,21 @@
       dragging = false;
     }
   }
+
+  function handlePaste(event: ClipboardEvent) {
+    if (busy) {
+      return;
+    }
+
+    const pasted = [...(event.clipboardData?.files ?? [])].filter((file) =>
+      file.type.startsWith("image/") || /\.svg$/i.test(file.name)
+    );
+
+    if (pasted.length > 0) {
+      event.preventDefault();
+      onFiles(pasted);
+    }
+  }
 </script>
 
 <section
@@ -92,6 +107,7 @@
   ondragover={handleDragOver}
   ondragleave={handleDragLeave}
   ondrop={handleDrop}
+  onpaste={handlePaste}
   data-dragging={dragging}
 >
   <div
@@ -128,7 +144,7 @@
       </p>
 
       <p class="mt-2 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-        Drag and drop, or choose from your device.
+        Drag and drop, paste from the clipboard, or choose from your device.
         {multiple
           ? "Add as many as you need."
           : "One file per conversion."}

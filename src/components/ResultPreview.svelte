@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
+  import PreviewViewport from "./PreviewViewport.svelte";
   import { formatBytes } from "../lib/format-utils";
   import {
     clampPreviewText,
@@ -203,62 +204,84 @@
   </header>
 
   <figure class="m-0">
-    <div
-      class="dc-alpha flex min-h-52 items-center justify-center overflow-hidden p-3 sm:min-h-64"
-    >
+    <div class="dc-alpha min-h-52 sm:min-h-64">
       {#if kind === "image" || kind === "svg"}
-        <img
-          src={url}
-          alt={`Converted result: ${name}`}
-          class="dc-fade-in max-h-[30rem] max-w-full object-contain"
-          decoding="async"
-        />
+        <PreviewViewport
+          class="h-[min(30rem,60vh)]"
+          resetKey={url}
+          label={`Converted result ${name}. Drag to pan, scroll to zoom.`}
+        >
+          <img
+            src={url}
+            alt={`Converted result: ${name}`}
+            class="dc-fade-in max-h-full max-w-full object-contain"
+            decoding="async"
+            draggable="false"
+          />
+        </PreviewViewport>
       {:else if kind === "pdf"}
         {#if pdfDataUrl}
-          <img
-            src={pdfDataUrl}
-            alt={`Page 1 of the converted file ${name}`}
-            class="dc-fade-in max-h-[30rem] max-w-full object-contain shadow-lift"
-          />
+          <PreviewViewport
+            class="h-[min(30rem,60vh)]"
+            resetKey={pdfDataUrl}
+            label={`Page 1 of ${name}. Drag to pan, scroll to zoom.`}
+          >
+            <img
+              src={pdfDataUrl}
+              alt={`Page 1 of the converted file ${name}`}
+              class="dc-fade-in max-h-full max-w-full object-contain shadow-lift"
+              draggable="false"
+            />
+          </PreviewViewport>
         {:else if loading}
-          <span class="flex items-center gap-3 text-sm text-zinc-500">
-            <span
-              class="h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-brand"
-              aria-hidden="true"
-            ></span>
-            Rendering page 1…
-          </span>
+          <div class="flex h-[min(30rem,60vh)] items-center justify-center">
+            <span class="flex items-center gap-3 text-sm text-zinc-500">
+              <span
+                class="h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-brand"
+                aria-hidden="true"
+              ></span>
+              Rendering page 1…
+            </span>
+          </div>
         {:else}
-          <p class="px-4 text-center text-sm text-zinc-600 dark:text-zinc-300">
-            {previewError ?? "Preview unavailable for this PDF."} The file is
-            still ready to download.
-          </p>
+          <div class="flex h-[min(30rem,60vh)] items-center justify-center px-4">
+            <p class="text-center text-sm text-zinc-600 dark:text-zinc-300">
+              {previewError ?? "Preview unavailable for this PDF."} The file is
+              still ready to download.
+            </p>
+          </div>
         {/if}
       {:else if kind === "text"}
         {#if textBody !== null}
           <pre
-            class="dc-fade-in max-h-[30rem] w-full overflow-auto whitespace-pre-wrap break-words text-left font-mono text-2xs leading-relaxed text-zinc-700 dark:text-zinc-300">{textBody}</pre>
+            class="dc-fade-in max-h-[min(30rem,60vh)] w-full overflow-auto whitespace-pre-wrap break-words p-4 text-left font-mono text-2xs leading-relaxed text-zinc-700 dark:text-zinc-300">{textBody}</pre>
         {:else if loading}
-          <span class="text-sm text-zinc-500">Reading the converted file…</span>
+          <div class="flex h-52 items-center justify-center">
+            <span class="text-sm text-zinc-500">Reading the converted file…</span>
+          </div>
         {:else}
-          <p class="text-sm text-zinc-600 dark:text-zinc-300">
-            {previewError ?? "This file cannot be shown here."}
-          </p>
+          <div class="flex h-52 items-center justify-center px-4">
+            <p class="text-sm text-zinc-600 dark:text-zinc-300">
+              {previewError ?? "This file cannot be shown here."}
+            </p>
+          </div>
         {/if}
       {:else}
-        <div class="px-4 text-center">
-          <span
-            class="mx-auto flex h-16 w-16 items-center justify-center rounded-card bg-zinc-100 font-mono text-xs font-bold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
-            aria-hidden="true"
-          >
-            {extension || "FILE"}
-          </span>
-          <p class="mt-3 text-sm font-medium text-zinc-700 dark:text-zinc-200">
-            {label} ready
-          </p>
-          <p class="mt-1 font-mono text-2xs text-zinc-500">
-            {mimeType} · {formatBytes(size)}
-          </p>
+        <div class="flex h-52 items-center justify-center px-4 text-center">
+          <div>
+            <span
+              class="mx-auto flex h-16 w-16 items-center justify-center rounded-card bg-zinc-100 font-mono text-xs font-bold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
+              aria-hidden="true"
+            >
+              {extension || "FILE"}
+            </span>
+            <p class="mt-3 text-sm font-medium text-zinc-700 dark:text-zinc-200">
+              {label} ready
+            </p>
+            <p class="mt-1 font-mono text-2xs text-zinc-500">
+              {mimeType} · {formatBytes(size)}
+            </p>
+          </div>
         </div>
       {/if}
     </div>
@@ -278,7 +301,7 @@
       {/if}
 
       <span class="w-full text-2xs text-zinc-400 dark:text-zinc-500">
-        {hint}
+        {hint} Drag to pan, scroll or pinch to zoom.
       </span>
     </figcaption>
   </figure>

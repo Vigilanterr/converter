@@ -2,7 +2,7 @@
 
 All-in-One File Converter built with **Astro, TypeScript, Svelte, PostgreSQL and Drizzle ORM**.
 
-DarConverter is a file conversion web application: images, documents, structured data, audio and video from one interface. The project is developed in phases, and this README describes the **current, verified state (Phase 1)**.
+DarConverter converts images, vectors and PDFs. The homepage is the converter: pick a conversion, drop a file, watch the real output render, then download it. This README describes the current, verified state.
 
 ---
 
@@ -22,23 +22,26 @@ DarConverter is a file conversion web application: images, documents, structured
 | Server-side image conversion (Sharp, Resvg, pdf-lib) | Implemented |
 | Browser-side image conversion (Canvas) | Implemented |
 | Upload validation (size, extension, MIME, magic bytes) | Implemented |
-| PDF tools (merge, split, rotate, protect, PDF to image/text) | Phase 2 |
-| PDF to Word via FastAPI | Phase 2 |
-| Office documents to PDF via LibreOffice | Phase 2 |
-| CSV, JSON, XLSX, XML, YAML conversion | Phase 3 |
-| Audio and video conversion via FFmpeg | Phase 3 |
-| Asynchronous job queue and polling | Phase 3 |
-| Rate limiting middleware and CORS policy | Phase 4 |
-| Docker, docker-compose, containers | Phase 5 |
-| Automated tests | Phase 5 |
+| Result preview from real output bytes (image, SVG, PDF, text) | Implemented |
+| Pan and zoom in every preview | Implemented |
+| Health endpoint for the database | Implemented |
+| Blackbox HTTP test suite (`qa-blackbox.mjs`) | Implemented |
+| PDF tools (merge, split, rotate, protect, PDF to image/text) | Not built |
+| PDF to Word via FastAPI | Not built |
+| Office documents to PDF via LibreOffice | Not built |
+| CSV, JSON, XLSX, XML, YAML conversion | Not built |
+| Audio and video conversion via FFmpeg | Not built |
+| Asynchronous job queue and polling | Not built |
+| Rate limiting middleware and CORS policy | Not built |
+| Docker, docker-compose, containers | Not built |
 
-Anything not listed as implemented does not exist yet. There are no placeholder endpoints.
+Anything not listed as implemented does not exist yet. There are no placeholder endpoints, and no route that pretends to convert a file.
 
 ---
 
 ## Implemented tools
 
-All tools are declared once in `src/data/tools.ts` and rendered from that single source.
+All 15 tools are declared once in `src/data/tools.ts` and rendered from that single source.
 
 | Tool | Runs in | Notes |
 | ---- | ------- | ----- |
@@ -53,16 +56,36 @@ All tools are declared once in `src/data/tools.ts` and rendered from that single
 | SVG to WebP | Server | Quality and background |
 | SVG to PDF | Server | One page per SVG |
 | Image to PDF | Server | Multiple images into one multi-page PDF |
+| Image to SVG | Server | Traced with ImageTracer |
+| PNG to SVG | Server | Traced with ImageTracer |
+| JPG to SVG | Server | Traced with ImageTracer |
+| WebP to SVG | Server | Traced with ImageTracer |
 
-Server-side decoding accepts PNG, JPG/JPEG, WebP, GIF, BMP, TIFF, AVIF and SVG. HEIC/HEIF detection is implemented but returns a clear "not enabled yet" error, because it depends on the codecs available in the runtime.
+Server-side decoding accepts PNG, JPG/JPEG, WebP, GIF, TIFF, AVIF and SVG. Two formats are deliberately refused instead of half-supported:
+
+* **HEIC / HEIF** are detected but rejected, because decoding depends on the codecs compiled into the runtime.
+* **BMP** is rejected as well. The Sharp build in this project has no BMP decoder, so accepting it would only ever produce a late 422. It is not advertised on any page and not listed as an accepted upload.
+
+### Preview
+
+The preview is never a stand-in for the file:
+
+* images and SVG results are rendered from the converted object URL;
+* PDF results are rendered from the returned bytes with PDF.js, page one, at up to 2× device pixel ratio;
+* text-shaped results are read back from the blob;
+* everything else shows the real MIME type and byte size instead of a picture.
+
+Every preview can be panned by dragging, zoomed with the wheel, a pinch gesture or the on-screen controls, and operated from the keyboard (arrows to pan, `+`/`-` to zoom, `0` to fit).
 
 ---
 
 ## Requirements
 
 * Node.js 20 or newer
-* PostgreSQL 14 or newer (tested against PostgreSQL 18)
+* PostgreSQL 14 or newer (tested against PostgreSQL 18 on Neon)
 * pgAdmin 4 for database management
+
+Neon is the currently configured host: `DATABASE_URL` points at a Neon pooler endpoint and `npm run db:migrate` applies `drizzle/0000_tearful_gateway.sql` to it. Any PostgreSQL 14+ host works the same way.
 
 ---
 
@@ -240,13 +263,15 @@ Request: `multipart/form-data`
 | Field | Required | Description |
 | ----- | -------- | ----------- |
 | `file` | yes | One file, or several when `output=PDF` |
-| `output` | yes | `PNG`, `JPG`, `WEBP`, `AVIF`, `TIFF`, `GIF` or `PDF` |
+| `output` | yes | `PNG`, `JPG`, `WEBP`, `AVIF`, `TIFF`, `GIF`, `PDF` or `SVG` |
 | `tool` | no | Tool slug recorded on the job |
 | `quality` | no | 1 to 100, default 85 |
 | `width`, `height` | no | Target size; the aspect ratio is preserved |
 | `background` | no | Hex colour such as `#ffffff` |
 | `rotation` | no | `0`, `90`, `180` or `270` |
 | `keepMetadata` | no | `true` keeps EXIF, ICC and IPTC data |
+| `traceMode` | no | `bw` or `color`, for SVG output |
+| `traceColors`, `traceDetail`, `traceSmoothing`, `traceMaxEdge` | no | ImageTracer tuning, for SVG output |
 
 ```bash
 curl -X POST \
@@ -293,9 +318,32 @@ Status codes:
 
 Astro's built-in origin check is active, so requests must come from the same origin. Command-line clients have to send an `Origin` header; browsers send it automatically.
 
+### GET /api/health
+
+Reports the database connection and whether the tables the app writes to exist. It never leaks the connection string.
+
+```json
+{
+  "success": true,
+  "data": {
+    "connected": true,
+    "driver": "neon-postgresql",
+    "migrationsApplied": true,
+    "missingTables": [],
+    "serverVersion": "PostgreSQL 18.6 …",
+    "appName": "DarConverter"
+  }
+}
+```
+
+| Code | Meaning |
+| ---- | ------- |
+| 200 | Connected, and every required table is present |
+| 503 | `DATABASE_URL` missing, the database is unreachable, or tables are missing (`X-Missing-Tables` lists them) |
+
 ### Endpoints not implemented yet
 
-`POST /api/jobs`, `GET /api/jobs/:id`, `GET /api/jobs/:id/download` and `POST /api/pdf-to-word` arrive in Phase 2 and 3.
+`POST /api/jobs`, `GET /api/jobs/:id`, `GET /api/jobs/:id/download` and `POST /api/pdf-to-word` do not exist.
 
 ---
 
@@ -313,7 +361,7 @@ Implemented:
 * Automatic deletion of temporary files
 * Errors returned as readable messages, never as stack traces
 
-Not implemented yet: rate limiting and an explicit CORS policy (Phase 4). There is currently no request throttling, so do not expose this build to the public internet as-is.
+Not implemented yet: rate limiting and an explicit CORS policy. There is currently no request throttling, so do not expose this build to the public internet as-is.
 
 ---
 
@@ -322,14 +370,23 @@ Not implemented yet: rate limiting and an explicit CORS policy (Phase 4). There 
 ```text
 src/
   components/
-    Converter.svelte      Interactive converter island
+    Converter.svelte        Upload, options, queue, result and download island
+    QuickConvert.svelte     Homepage converter with the tool picker
+    ToolSelect.svelte       Grouped conversion picker
+    UploadZone.svelte       Drag and drop plus file picker
+    PreviewPanel.svelte     Live before/after preview
+    ImageCompare.svelte     Overlay comparison with a draggable divider
+    PreviewViewport.svelte  Shared pan and zoom surface for every preview
+    ResultPreview.svelte    Preview rendered from the converted bytes
+    PreviewInfo.svelte      Dimensions and size of a preview
+    StepRail.svelte         Upload, Convert, Preview, Download progress
     Footer.astro
     Navbar.astro
     Toolcard.astro
   data/
-    tools.ts              Single source of truth for every tool
+    tools.ts                Single source of truth for every tool
   db/
-    index.ts              Lazy pg Pool and Drizzle instance
+    index.ts                Lazy pg Pool and Drizzle instance
     schema/
       conversion-files.ts
       conversion-history.ts
@@ -339,23 +396,30 @@ src/
   layouts/
     Layouts.astro
   lib/
-    api.ts                JSON envelope and download responses
-    cleanup.ts            Expiry sweep and scheduler
-    env.ts                Typed environment access
-    image-convert.ts      Sharp, Resvg and pdf-lib pipeline
-    storage.ts            UUID storage paths
-    validation.ts         Upload validation and magic bytes
+    api.ts                  JSON envelope and download responses
+    cleanup.ts              Expiry sweep and scheduler
+    env.ts                  Typed environment access
+    file-utils.ts           Filename helpers for the client
+    format-utils.ts         Format labels, sizes and aspect ratios
+    image-convert.ts        Sharp, Resvg and pdf-lib pipeline
+    image-preview.ts        Browser-side live preview pipeline
+    result-preview.ts       PDF.js rendering and text read-back
+    storage.ts              UUID storage paths
+    validation.ts           Upload validation and magic bytes
+    vectorize.ts            ImageTracer options
   pages/
-    index.astro
-    [slug].astro
+    index.astro             Converter-first homepage and tool directory
+    [slug].astro            One prerendered page per tool
     api/
+      health.ts
       image-convert.ts
   styles/
     global.css
   env.d.ts
 
-drizzle/                  Generated migrations
-storage/                  Temporary files, Git-ignored
+qa-blackbox.mjs             Blackbox HTTP test suite
+drizzle/                    Generated migrations
+storage/                    Temporary files, Git-ignored
 drizzle.config.ts
 ```
 
@@ -363,19 +427,44 @@ drizzle.config.ts
 
 ## Testing
 
-Phase 1 has no automated test suite. `npm run check` and `npm run build` are the automated gate; the conversion endpoints were verified manually against a running server and a real PostgreSQL database, including the validation failures and the cleanup sweep. Automated tests are scheduled for Phase 5.
+`npm run check` and `npm run build` are the static gate. `astro check` currently reports 0 errors, 0 warnings and 0 hints across 36 files.
+
+`qa-blackbox.mjs` is the behavioural suite. It only talks HTTP to a running server, so it verifies what a user or a client actually gets:
+
+```bash
+npm run dev            # or: npx astro dev --background
+node qa-blackbox.mjs   # in a second terminal
+```
+
+It covers, against the real API and the real database:
+
+* the health endpoint and the Neon schema check;
+* all 15 tools, verifying the returned bytes are really the requested format (decoded with Sharp, parsed with pdf-lib, SVG asserted to contain real `<path>` data);
+* a three-file PDF batch, asserting page count, page size and filename;
+* every advertised input format, plus BMP being refused rather than half-supported;
+* options that must change the output: width, rotation, background flattening, quality, bw tracing;
+* validation failures: empty file, wrong content, extension/MIME mismatch, oversize upload, HEIC, unsupported output, missing file, non-multipart body, multi-file raster;
+* CSRF origin protection in all three directions;
+* branding and routing on the homepage and all 15 tool pages, including that no fake prototype copy survives.
+
+Last run: **64 checks, 64 passing, 0 failing.**
+
+Not covered by automation: the browser-only code paths (Canvas conversion, pan/zoom gestures, PDF.js worker startup) and visual responsive checks. There is no browser automation in this repository, so those are verified by hand in a real browser.
 
 ---
 
 ## Known limitations
 
 * HEIC and HEIF are detected but rejected, because decoding depends on the codecs compiled into the runtime.
-* Pages produced by Image to PDF follow the proportions of each image rather than a fixed paper size.
+* BMP is rejected, because the bundled Sharp build has no BMP decoder.
+* PDF pages produced by SVG to PDF and Image to PDF follow the proportions of each image rather than a fixed paper size, and pixels are converted to points as CSS pixels (72/96), so a 320×240 image becomes a 240×180 pt page.
 * Multi-page PDF embeds each page as PNG when the image has an alpha channel and as JPG otherwise, to keep the file size reasonable.
+* SVG output is traced, not reconstructed: ImageTracer produces new paths from the raster, so text does not stay selectable.
 * Temporary files live on the local filesystem, which is fine locally but would need object storage for multiple instances.
 * There is no authentication, so `conversion_history.user_id` is always null.
 * There is no rate limiting yet.
 * Tool pages are prerendered, so adding a tool requires a rebuild.
+* `astro` is declared as `latest` in `package.json`, so a fresh install can pull a different major version than the one this was verified against (Astro 7.3.5). Pin it before relying on reproducible builds.
 
 ---
 

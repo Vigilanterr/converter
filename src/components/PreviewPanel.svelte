@@ -1,6 +1,7 @@
 <script lang="ts">
   import ImageCompare from "./ImageCompare.svelte";
   import PreviewInfo from "./PreviewInfo.svelte";
+  import PreviewViewport from "./PreviewViewport.svelte";
   import type { PreviewMeta, PreviewStatus } from "../lib/image-preview";
 
   interface Props {
@@ -235,23 +236,32 @@
           </figcaption>
 
           <div
-            class="flex h-44 items-center justify-center overflow-hidden rounded-control border border-zinc-200 p-3 sm:h-56 {original.hasAlpha
+            class="h-44 rounded-control border border-zinc-200 sm:h-56 {original.hasAlpha
               ? 'dc-alpha'
               : 'bg-white dark:bg-zinc-950'}"
           >
             {#key original.url}
               {#if original.url}
-                <img
-                  src={original.url}
-                  alt={`Original ${original.name}`}
-                  class="dc-fade-in max-h-full max-w-full object-contain"
-                />
-              {:else}
-                <span
-                  class="rounded-control bg-zinc-100 px-3 py-2 font-mono text-2xs font-bold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
+                <PreviewViewport
+                  class="h-full w-full rounded-control"
+                  resetKey={original.url}
+                  label={`Original ${original.name}. Drag to pan, scroll to zoom.`}
                 >
-                  {original.format}
-                </span>
+                  <img
+                    src={original.url}
+                    alt={`Original ${original.name}`}
+                    class="dc-fade-in max-h-full max-w-full object-contain"
+                    draggable="false"
+                  />
+                </PreviewViewport>
+              {:else}
+                <div class="flex h-full items-center justify-center p-3">
+                  <span
+                    class="rounded-control bg-zinc-100 px-3 py-2 font-mono text-2xs font-bold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
+                  >
+                    {original.format}
+                  </span>
+                </div>
               {/if}
             {/key}
           </div>
@@ -290,16 +300,23 @@
 
           {#if converted && converted.url}
             <div
-              class="flex h-44 items-center justify-center overflow-hidden rounded-control border border-zinc-200 p-3 sm:h-56 {converted.hasAlpha
+              class="h-44 rounded-control border border-zinc-200 sm:h-56 {converted.hasAlpha
                 ? 'dc-alpha'
                 : 'bg-white dark:bg-zinc-950'}"
             >
               {#key converted.url}
-                <img
-                  src={converted.url}
-                  alt={`Converted preview of ${original.name}`}
-                  class="dc-fade-in max-h-full max-w-full object-contain"
-                />
+                <PreviewViewport
+                  class="h-full w-full rounded-control"
+                  resetKey={converted.url}
+                  label={`Converted preview of ${original.name}. Drag to pan, scroll to zoom.`}
+                >
+                  <img
+                    src={converted.url}
+                    alt={`Converted preview of ${original.name}`}
+                    class="dc-fade-in max-h-full max-w-full object-contain"
+                    draggable="false"
+                  />
+                </PreviewViewport>
               {/key}
             </div>
 

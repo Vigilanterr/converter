@@ -4,7 +4,6 @@ export const imageInputFormats = [
   "JPEG",
   "WEBP",
   "GIF",
-  "BMP",
   "TIFF",
   "AVIF",
   "SVG",
@@ -33,7 +32,6 @@ const FORMAT_EXTENSIONS: Record<string, ImageInputFormat> = {
   jpeg: "JPG",
   webp: "WEBP",
   gif: "GIF",
-  bmp: "BMP",
   tif: "TIFF",
   tiff: "TIFF",
   avif: "AVIF",
@@ -49,8 +47,6 @@ const FORMAT_MIME_TYPES: Record<string, ImageInputFormat> = {
   "image/pjpeg": "JPG",
   "image/webp": "WEBP",
   "image/gif": "GIF",
-  "image/bmp": "BMP",
-  "image/x-ms-bmp": "BMP",
   "image/tiff": "TIFF",
   "image/avif": "AVIF",
   "image/svg+xml": "SVG",
@@ -236,10 +232,6 @@ export function detectFormatFromBytes(
 
   if (ascii(buffer, 0, 6).startsWith("GIF8")) {
     return "GIF";
-  }
-
-  if (ascii(buffer, 0, 2) === "BM") {
-    return "BMP";
   }
 
   if (

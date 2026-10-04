@@ -37,7 +37,6 @@ const inputFormatAliases: Record<string, string[]> = {
   png: ["png"],
   svg: ["svg"],
   gif: ["gif"],
-  bmp: ["bmp"],
   tiff: ["tiff", "tif"],
   avif: ["avif"]
 };
@@ -311,7 +310,7 @@ export const tools: ToolConfig[] = [
     description:
       "Combine JPG, PNG, WebP and SVG images into one multi page PDF file.",
     category: "image",
-    inputFormats: ["PNG", "JPG", "WEBP", "SVG", "GIF", "BMP", "TIFF", "AVIF"],
+    inputFormats: ["PNG", "JPG", "WEBP", "SVG", "GIF", "TIFF", "AVIF"],
     outputFormats: ["PDF"],
     options: ["quality", "resize", "background", "rotation"],
     browserSupported: false,
@@ -339,7 +338,7 @@ export const tools: ToolConfig[] = [
     description:
       "Trace any raster image into real SVG vector paths you can scale, recolour and edit in Illustrator, Figma or Inkscape.",
     category: "image",
-    inputFormats: ["PNG", "JPG", "WEBP", "GIF", "BMP", "TIFF", "AVIF"],
+    inputFormats: ["PNG", "JPG", "WEBP", "GIF", "TIFF", "AVIF"],
     outputFormats: ["SVG"],
     options: ["trace", "resize", "background", "rotation"],
     browserSupported: false,

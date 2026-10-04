@@ -177,7 +177,7 @@ function describeError(error: unknown): string {
     return "The conversion service is temporarily unavailable.";
   }
 
-  return "Image conversion failed due to an unexpected error.";
+  return "The conversion service hit an unexpected error. Please try again in a moment.";
 }
 
 function statusForError(error: unknown): number {
@@ -348,6 +348,12 @@ export const POST: APIRoute = async ({ request }) => {
       jobExpiryDate()
     );
   } catch (error) {
-    return apiError(describeError(error), statusForError(error));
+    const status = statusForError(error);
+
+    if (status >= 500) {
+      console.error("[image-convert] unexpected failure:", error);
+    }
+
+    return apiError(describeError(error), status);
   }
 };

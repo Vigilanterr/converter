@@ -10,31 +10,42 @@ const { tool } = Astro.props;
 
 <a
   href={`/${tool.slug}`}
-  class="group rounded-2xl border border-zinc-200 bg-white p-5 transition duration-200 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-200/40 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:shadow-black/20"
+  class="dc-card group flex h-full flex-col p-5 transition duration-150 hover:border-zinc-300 focus-visible:border-brand focus-visible:outline-none dark:hover:border-zinc-600"
 >
-  <div class="mb-5 flex items-center justify-between">
-    <span class="rounded-lg bg-zinc-100 px-2.5 py-1 text-xs font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-      {tool.inputFormats.join(" / ")}
+  <div class="flex items-center gap-2">
+    <span class="dc-chip">{tool.inputFormats.join(" / ")}</span>
+
+    <span
+      class="text-zinc-300 transition group-hover:translate-x-0.5 group-hover:text-zinc-500 dark:text-zinc-600"
+      aria-hidden="true"
+    >
+      &rarr;
     </span>
 
-    <span class="text-zinc-400 transition group-hover:translate-x-1">
-      →
-    </span>
+    <span class="dc-chip">{tool.outputFormats.join(" / ")}</span>
   </div>
 
-  <h3 class="text-base font-semibold text-zinc-950 dark:text-white">
+  <h3 class="mt-4 text-sm font-semibold text-zinc-900 dark:text-white">
     {tool.title}
   </h3>
 
-  <p class="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+  <p class="mt-2 flex-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
     {tool.description}
   </p>
 
-  <div class="mt-5 flex flex-wrap gap-2">
-    {tool.outputFormats.map((format) => (
-      <span class="text-xs text-zinc-400">
-        → {format}
-      </span>
-    ))}
-  </div>
+  <span
+    class="mt-5 flex items-center gap-1.5 text-[11px] font-medium
+      {tool.browserSupported
+        ? 'text-positive dark:text-emerald-400'
+        : 'text-zinc-400 dark:text-zinc-500'}"
+  >
+    <span
+      class="h-1.5 w-1.5 rounded-full {tool.browserSupported
+        ? 'bg-positive dark:bg-emerald-400'
+        : 'bg-zinc-300 dark:bg-zinc-600'}"
+      aria-hidden="true"
+    ></span>
+
+    {tool.browserSupported ? "Runs in your browser" : "Processed on the server"}
+  </span>
 </a>

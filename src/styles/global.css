@@ -2,29 +2,224 @@
 @tailwind components;
 @tailwind utilities;
 
-html {
-  scroll-behavior: smooth;
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-zinc-50 font-sans text-base text-zinc-700 antialiased dark:bg-zinc-950 dark:text-zinc-300;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply text-zinc-900 dark:text-zinc-50;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand ring-offset-2 ring-offset-white dark:ring-offset-zinc-950;
+  }
+
+  ::selection {
+    @apply bg-brand/20;
+  }
+
+  /* Range inputs are used for quality, detail and smoothing. Both WebKit and
+     Gecko need their own track/thumb rules, so the shared look is declared
+     once here instead of per component. */
+  input[type="range"] {
+    @apply h-1.5 w-full cursor-pointer appearance-none rounded-full bg-zinc-200 dark:bg-zinc-800;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    @apply h-4 w-4 appearance-none rounded-full border-2 border-white bg-brand shadow-hair transition-transform duration-120;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.12);
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    @apply h-4 w-4 rounded-full border-2 border-white bg-brand shadow-hair;
+  }
+
+  input[type="color"] {
+    @apply h-9 w-14 cursor-pointer rounded-control border border-zinc-300 bg-transparent p-1 dark:border-zinc-700;
+  }
+
+  input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+
+  input[type="color"]::-webkit-color-swatch {
+    @apply rounded-[3px] border-0;
+  }
 }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  background: #fafafa;
-  color: #18181b;
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+@layer components {
+  /* ---------------------------------------------------------------------
+     Surfaces
+     --------------------------------------------------------------------- */
+
+  .dc-card {
+    @apply rounded-card border border-zinc-200 bg-white shadow-hair dark:border-zinc-800 dark:bg-zinc-900;
+  }
+
+  .dc-inset {
+    @apply rounded-control border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950/60;
+  }
+
+  /* Transparency checkerboard, used behind any image that may carry alpha. */
+  .dc-alpha {
+    background-color: #ffffff;
+    background-image:
+      linear-gradient(45deg, #e4e4e7 25%, transparent 25%),
+      linear-gradient(-45deg, #e4e4e7 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #e4e4e7 75%),
+      linear-gradient(-45deg, transparent 75%, #e4e4e7 75%);
+    background-size:
+      16px 16px,
+      16px 16px,
+      16px 16px,
+      16px 16px;
+    background-position:
+      0 0,
+      0 8px,
+      8px -8px,
+      -8px 0;
+  }
+
+  .dark .dc-alpha {
+    background-color: #18181b;
+    background-image:
+      linear-gradient(45deg, #27272a 25%, transparent 25%),
+      linear-gradient(-45deg, #27272a 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #27272a 75%),
+      linear-gradient(-45deg, transparent 75%, #27272a 75%);
+  }
+
+  /* ---------------------------------------------------------------------
+     Controls
+     --------------------------------------------------------------------- */
+
+  .dc-btn {
+    @apply inline-flex min-h-11 select-none items-center justify-center gap-2 whitespace-nowrap rounded-control border px-4 text-sm font-semibold no-underline transition duration-180 ease-out active:translate-y-px disabled:pointer-events-none disabled:opacity-45;
+  }
+
+  .dc-btn-primary {
+    @apply border-brand bg-brand text-brand-ink hover:border-brand-deep hover:bg-brand-deep dark:border-brand-lift dark:bg-brand dark:hover:bg-brand-lift;
+  }
+
+  .dc-btn-secondary {
+    @apply border-zinc-300 bg-white text-zinc-800 hover:border-zinc-400 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-zinc-600 dark:hover:bg-zinc-800;
+  }
+
+  .dc-btn-ghost {
+    @apply border-transparent bg-transparent text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100;
+  }
+
+  .dc-btn-sm {
+    @apply min-h-9 rounded-control px-3 text-xs;
+  }
+
+  .dc-field {
+    @apply w-full rounded-control border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 transition placeholder:text-zinc-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:focus:border-brand;
+  }
+
+  .dc-label {
+    @apply text-sm font-semibold text-zinc-800 dark:text-zinc-200;
+  }
+
+  .dc-hint {
+    @apply text-xs leading-relaxed text-zinc-500 dark:text-zinc-400;
+  }
+
+  /* ---------------------------------------------------------------------
+     Small parts
+     --------------------------------------------------------------------- */
+
+  .dc-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-2xs font-semibold uppercase tracking-wide text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400;
+  }
+
+  .dc-eyebrow {
+    @apply font-mono text-2xs font-medium uppercase tracking-[0.14em] text-zinc-400 dark:text-zinc-500;
+  }
+
+  .dc-metric {
+    @apply font-mono text-xs tabular-nums text-zinc-500 dark:text-zinc-400;
+  }
+
+  .dc-link {
+    @apply text-zinc-600 underline-offset-4 transition hover:text-zinc-900 hover:underline dark:text-zinc-400 dark:hover:text-zinc-100;
+  }
+
+  /* Status surfaces. Each pairs a tone with an icon and a word in markup, so
+     the state is never communicated by colour on its own. */
+  .dc-note {
+    @apply flex gap-3 rounded-control border px-4 py-3 text-sm leading-relaxed;
+  }
+
+  .dc-note-neutral {
+    @apply border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300;
+  }
+
+  .dc-note-info {
+    @apply border-brand/25 bg-brand-soft text-brand-soft-ink dark:border-brand/30 dark:bg-brand/10 dark:text-brand-lift;
+  }
+
+  .dc-note-success {
+    @apply border-positive/25 bg-positive-soft text-positive dark:border-positive/30 dark:bg-positive/10 dark:text-emerald-300;
+  }
+
+  .dc-note-warning {
+    @apply border-caution/30 bg-caution-soft text-caution dark:border-caution/30 dark:bg-caution/10 dark:text-amber-300;
+  }
+
+  .dc-note-error {
+    @apply border-critical/30 bg-critical-soft text-critical dark:border-critical/40 dark:bg-critical/10 dark:text-red-300;
+  }
+
+  /* ---------------------------------------------------------------------
+     Motion
+     --------------------------------------------------------------------- */
+
+  .dc-fade-in {
+    animation: dc-fade 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes dc-fade {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .dc-bar-fill {
+    transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
 }
 
-.dark body {
-  background: #09090b;
-  color: #f4f4f5;
+@layer utilities {
+  .dc-scroll-x {
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
-* {
-  box-sizing: border-box;
-}
-
-button,
-input,
-select {
-  font: inherit;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

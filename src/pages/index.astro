@@ -1,92 +1,278 @@
 ---
 import Layout from "@/layouts/Layouts.astro";
+import QuickConvert from "@/components/QuickConvert.svelte";
 import ToolCard from "@/components/Toolcard.astro";
-import { categories, tools } from "@/data/tools";
+import {
+  categories,
+  searchIndexForTool,
+  tools
+} from "@/data/tools";
+import { env } from "@/lib/env";
 
-const imageTools = tools.filter(
-  (tool) => tool.category === "image"
-);
+const supportedFormats = [
+  ...new Set(tools.flatMap((tool) => tool.inputFormats))
+].sort();
+
+const browserTools = tools.filter((tool) => tool.browserSupported);
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: env.appName,
+  description: `Convert images and vectors between ${supportedFormats.join(", ")} and PDF. ${tools.length} focused conversion tools, up to ${env.maxFileSizeMb} MB per file.`,
+  applicationCategory: "UtilitiesApplication",
+  operatingSystem: "Any",
+  url: Astro.url.href,
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD"
+  }
+};
+
+const steps = [
+  {
+    title: "Upload",
+    body: "Drag a file in or pick one from your device. Format, size and type are checked before anything runs."
+  },
+  {
+    title: "Convert",
+    body: "Simple re-encoding happens in your browser. Vector tracing and PDF assembly happen on our server."
+  },
+  {
+    title: "Preview",
+    body: "See the real output before you download it — rendered from the converted file, not a placeholder."
+  },
+  {
+    title: "Download",
+    body: "Save one file or the whole batch. Temporary copies are deleted automatically."
+  }
+];
 ---
 
-<Layout
-  title="FileForge — All-in-One File Converter"
-  description="Convert images and files quickly with FileForge."
->
-  <section class="relative overflow-hidden">
-    <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,#dbeafe,transparent_40%)] dark:bg-[radial-gradient(circle_at_top,#172554,transparent_40%)]"></div>
+<Layout>
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify(structuredData)}
+  />
 
-    <div class="mx-auto max-w-5xl px-5 py-24 text-center sm:py-32">
-      <div class="mb-6 inline-flex rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-medium text-zinc-600 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
-        All-in-One File Converter
-      </div>
-
-      <h1 class="text-4xl font-bold tracking-tight text-zinc-950 sm:text-6xl dark:text-white">
-        Convert your files
-        <span class="text-blue-600">
-          without the hassle.
-        </span>
-      </h1>
-
-      <p class="mx-auto mt-6 max-w-2xl text-base leading-7 text-zinc-500 sm:text-lg dark:text-zinc-400">
-        Convert images, documents, data, audio and video files
-        from one clean interface.
+  <section class="border-b border-zinc-200 dark:border-zinc-800">
+    <div class="mx-auto max-w-shell px-5 py-14 sm:py-20">
+      <p class="dc-eyebrow">
+        {tools.length} converters · up to {env.maxFileSizeMb} MB per file
       </p>
 
-      <div class="mx-auto mt-10 max-w-xl">
-        <input
-          id="tool-search"
-          type="search"
-          placeholder="Search a converter..."
-          class="w-full rounded-xl border border-zinc-200 bg-white px-5 py-4 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-800 dark:bg-zinc-900"
-        />
+      <h1
+        class="mt-4 max-w-3xl text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl dark:text-white"
+      >
+        Drop a file. Get the format you need.
+      </h1>
+
+      <p
+        class="mt-5 max-w-2xl text-lg leading-relaxed text-zinc-600 dark:text-zinc-400"
+      >
+        {env.appName} converts images and vectors between
+        {supportedFormats.filter((format) => format !== "SVG").join(", ")} and
+        PDF. Preview the real output first, then download it.
+      </p>
+
+      <ol
+        class="mt-10 grid gap-x-8 gap-y-5 border-t border-zinc-200 pt-8 sm:grid-cols-2 lg:grid-cols-4 dark:border-zinc-800"
+      >
+        {
+          steps.map((step, index) => (
+            <li>
+              <span class="dc-eyebrow">0{index + 1}</span>
+              <h2 class="mt-2 text-sm font-semibold text-zinc-900 dark:text-white">
+                {step.title}
+              </h2>
+              <p class="mt-1.5 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+                {step.body}
+              </p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section id="convert" class="mx-auto max-w-shell scroll-mt-20 px-5 py-14">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h2 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+          Convert a file
+        </h2>
+
+        <p class="mt-2 max-w-xl text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+          Pick a conversion, drop in your file, and watch the result render
+          before you download it.
+        </p>
       </div>
+    </div>
+
+    <div class="mt-8">
+      <QuickConvert client:load maxFileSizeMb={env.publicMaxFileSizeMb} />
+    </div>
+  </section>
+
+  <section id="tools" class="scroll-mt-20 border-t border-zinc-200 dark:border-zinc-800">
+    <div class="mx-auto max-w-shell px-5 py-14">
+      <div class="flex flex-wrap items-end justify-between gap-6">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+            Every converter
+          </h2>
+
+          <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+            Each one has its own page with options and a live preview.
+          </p>
+        </div>
+
+        <div class="w-full sm:max-w-xs">
+          <label for="tool-search" class="sr-only">
+            Search converters
+          </label>
+
+          <div class="relative">
+            <svg
+              class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="6.5"></circle>
+              <path stroke-linecap="round" d="m16 16 4 4"></path>
+            </svg>
+
+            <input
+              id="tool-search"
+              type="search"
+              placeholder="Search, e.g. png to webp"
+              autocomplete="off"
+              class="dc-field pl-10"
+            />
+          </div>
+
+          <p
+            id="search-status"
+            class="mt-2 text-xs text-zinc-500"
+            role="status"
+            aria-live="polite"
+          >
+            Showing all {tools.length} converters
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-10 space-y-12">
+        {
+          categories.map((category) => {
+            const categoryTools = tools.filter(
+              (tool) => tool.category === category.id
+            );
+
+            return (
+              <div class="tool-category" data-category={category.id}>
+                <div class="flex flex-wrap items-baseline justify-between gap-3">
+                  <h3 class="text-lg font-semibold text-zinc-900 dark:text-white">
+                    {category.title}
+                  </h3>
+
+                  <span class="dc-metric">
+                    {categoryTools.length} tool
+                    {categoryTools.length === 1 ? "" : "s"}
+                  </span>
+                </div>
+
+                {categoryTools.length > 0 ? (
+                  <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {categoryTools.map((tool) => (
+                      <div
+                        class="tool-item"
+                        data-search={searchIndexForTool(tool)}
+                      >
+                        <ToolCard tool={tool} />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div class="mt-5 rounded-card border border-dashed border-zinc-300 p-6 text-sm text-zinc-500 dark:border-zinc-700">
+                    No converters in this category yet.
+                  </div>
+                )}
+              </div>
+            );
+          })
+        }
+      </div>
+
+      <p
+        id="no-results"
+        class="mt-8 hidden text-sm text-zinc-500 dark:text-zinc-400"
+      >
+        No converter matches that search. Try a format such as
+        <span class="font-medium text-zinc-700 dark:text-zinc-200">webp</span>
+        or
+        <span class="font-medium text-zinc-700 dark:text-zinc-200">svg</span>.
+      </p>
     </div>
   </section>
 
   <section
-    id="tools"
-    class="mx-auto max-w-7xl px-5 pb-24"
+    id="formats"
+    class="scroll-mt-20 border-t border-zinc-200 dark:border-zinc-800"
   >
-    <div class="space-y-16">
-      {categories.map((category) => {
-        const categoryTools = tools.filter(
-          (tool) => tool.category === category.id
-        );
+    <div class="mx-auto max-w-shell px-5 py-14">
+      <h2 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+        Supported formats
+      </h2>
 
-        return (
-          <div
-            class="tool-category"
-            data-category={category.id}
-          >
-            <div class="mb-7">
-              <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">
-                {category.title}
-              </h2>
+      <ul class="mt-6 flex flex-wrap gap-2">
+        {
+          supportedFormats.map((format) => (
+            <li class="dc-chip">{format}</li>
+          ))
+        }
+      </ul>
 
-              <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-                {category.description}
-              </p>
-            </div>
+      <div
+        class="mt-10 grid gap-6 border-t border-zinc-200 pt-8 text-sm sm:grid-cols-3 dark:border-zinc-800"
+      >
+        <div>
+          <h3 class="font-semibold text-zinc-900 dark:text-white">
+            Browser first
+          </h3>
 
-            <div class="tool-grid grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {categoryTools.length > 0 ? (
-                categoryTools.map((tool) => (
-                  <div
-                    class="tool-item"
-                    data-search={`${tool.title} ${tool.description} ${tool.inputFormats.join(" ")} ${tool.outputFormats.join(" ")}`.toLowerCase()}
-                  >
-                    <ToolCard tool={tool} />
-                  </div>
-                ))
-              ) : (
-                <div class="rounded-2xl border border-dashed border-zinc-300 p-8 text-sm text-zinc-500 dark:border-zinc-700">
-                  More tools are coming soon.
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      })}
+          <p class="mt-2 leading-relaxed text-zinc-500 dark:text-zinc-400">
+            {browserTools.length} converters run entirely on your device using
+            the Canvas API. Nothing is uploaded.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-zinc-900 dark:text-white">
+            Validated uploads
+          </h3>
+
+          <p class="mt-2 leading-relaxed text-zinc-500 dark:text-zinc-400">
+            Every upload is checked by extension, MIME type and magic bytes
+            before it is processed.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-zinc-900 dark:text-white">
+            Automatic cleanup
+          </h3>
+
+          <p class="mt-2 leading-relaxed text-zinc-500 dark:text-zinc-400">
+            Temporary files use random UUID names and are removed after
+            {env.tempFileTtlMinutes} minutes.
+          </p>
+        </div>
+      </div>
     </div>
   </section>
 </Layout>
@@ -95,36 +281,45 @@ const imageTools = tools.filter(
   const searchInput = document.getElementById(
     "tool-search"
   ) as HTMLInputElement | null;
-
+  const searchStatus = document.getElementById("search-status");
+  const noResults = document.getElementById("no-results");
   const toolItems = Array.from(
     document.querySelectorAll<HTMLElement>(".tool-item")
   );
-
-  const categories = Array.from(
+  const categoryBlocks = Array.from(
     document.querySelectorAll<HTMLElement>(".tool-category")
   );
 
   searchInput?.addEventListener("input", () => {
     const query = searchInput.value.trim().toLowerCase();
+    let visible = 0;
 
-    toolItems.forEach((item) => {
-      const searchable = item.dataset.search ?? "";
+    for (const item of toolItems) {
+      const matches =
+        query.length === 0 || (item.dataset.search ?? "").includes(query);
 
-      item.classList.toggle(
-        "hidden",
-        query.length > 0 && !searchable.includes(query)
-      );
-    });
+      item.classList.toggle("hidden", !matches);
 
-    categories.forEach((category) => {
-      const visibleTools = category.querySelectorAll(
+      if (matches) {
+        visible += 1;
+      }
+    }
+
+    for (const block of categoryBlocks) {
+      const hasVisibleTool = block.querySelectorAll(
         ".tool-item:not(.hidden)"
-      );
+      ).length;
 
-      category.classList.toggle(
-        "hidden",
-        query.length > 0 && visibleTools.length === 0
-      );
-    });
+      block.classList.toggle("hidden", hasVisibleTool === 0);
+    }
+
+    if (searchStatus) {
+      searchStatus.textContent =
+        query.length === 0
+          ? `Showing all ${toolItems.length} converters`
+          : `${visible} converter${visible === 1 ? "" : "s"} found`;
+    }
+
+    noResults?.classList.toggle("hidden", visible > 0);
   });
 </script>

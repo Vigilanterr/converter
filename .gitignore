@@ -6,3 +6,18 @@ dist/
 !.env.example
 .DS_Store
 *.log
+
+# Local agent/tooling workspaces, not part of the application
+.agents/
+.hallmark/
+.freebuff/
+.vscode/
+skills-lock.json
+
+# Temporary file storage
+storage/input/*
+storage/output/*
+storage/temp/*
+!storage/input/.gitkeep
+!storage/output/.gitkeep
+!storage/temp/.gitkeep

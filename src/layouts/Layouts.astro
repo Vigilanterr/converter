@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import Navbar from "../components/Navbar.astro";
 import Footer from "../components/Footer.astro";
+import { env } from "../lib/env";
 
 interface Props {
   title?: string;
@@ -9,43 +10,78 @@ interface Props {
 }
 
 const {
-  title = "All-in-One File Converter",
-  description = "Convert images, documents, data, audio and video files online."
+  title = `${env.appName} — convert images, vectors and PDFs`,
+  description = `${env.appName} converts PNG, JPG, WebP, SVG, AVIF, TIFF, GIF and PDF images in your browser or on the server, with a live preview before you download.`
 } = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="canonical" href={canonical} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={env.appName} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
 
     <meta
-      name="description"
-      content={description}
+      name="theme-color"
+      media="(prefers-color-scheme: light)"
+      content="#fafafa"
+    />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: dark)"
+      content="#09090b"
+    />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
     />
 
     <script is:inline>
       (() => {
-        const savedTheme = localStorage.getItem("theme");
+        const stored = localStorage.getItem("theme");
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
 
-        if (
-          savedTheme === "dark" ||
-          (!savedTheme &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches)
-        ) {
+        if (stored === "dark" || (stored !== "light" && prefersDark)) {
           document.documentElement.classList.add("dark");
         }
       })();
     </script>
   </head>
 
-  <body>
+  <body class="flex min-h-screen flex-col overflow-x-clip">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-control focus:bg-brand focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
+    >
+      Skip to content
+    </a>
+
     <Navbar />
 
-    <main>
+    <main id="main" class="flex-1">
       <slot />
     </main>
 

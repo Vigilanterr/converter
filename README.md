@@ -1,241 +1,72 @@
-# FileForge
+# DarConverter
 
-All-in-One File Converter built with **Astro, TypeScript, Svelte, PostgreSQL, and Drizzle ORM**.
+All-in-One File Converter built with **Astro, TypeScript, Svelte, PostgreSQL and Drizzle ORM**.
 
-FileForge is a web-based file conversion platform for converting images, documents, structured data, audio, and video from a single interface.
-
-The project is designed to run locally first using PostgreSQL and pgAdmin, with Docker support for reproducible development and deployment.
+DarConverter is a file conversion web application: images, documents, structured data, audio and video from one interface. The project is developed in phases, and this README describes the **current, verified state (Phase 1)**.
 
 ---
 
-## Features
+## Phase status
 
-### Image
+| Area | Status |
+| ---- | ------ |
+| Astro SSR with Node adapter | Implemented |
+| TypeScript, Tailwind CSS, Svelte 5 islands | Implemented |
+| Layout, navigation, footer, dark mode | Implemented |
+| Centralised tool configuration | Implemented |
+| Dynamic tool pages generated from config | Implemented |
+| PostgreSQL schema and Drizzle migrations | Implemented |
+| Database-aware conversion flow | Implemented |
+| Temporary storage with UUID filenames | Implemented |
+| Automatic cleanup of expired files and jobs | Implemented |
+| Server-side image conversion (Sharp, Resvg, pdf-lib) | Implemented |
+| Browser-side image conversion (Canvas) | Implemented |
+| Upload validation (size, extension, MIME, magic bytes) | Implemented |
+| PDF tools (merge, split, rotate, protect, PDF to image/text) | Phase 2 |
+| PDF to Word via FastAPI | Phase 2 |
+| Office documents to PDF via LibreOffice | Phase 2 |
+| CSV, JSON, XLSX, XML, YAML conversion | Phase 3 |
+| Audio and video conversion via FFmpeg | Phase 3 |
+| Asynchronous job queue and polling | Phase 3 |
+| Rate limiting middleware and CORS policy | Phase 4 |
+| Docker, docker-compose, containers | Phase 5 |
+| Automated tests | Phase 5 |
 
-* PNG → JPG
-* JPG/JPEG → PNG
-* PNG → WebP
-* JPG/JPEG → WebP
-* WebP → PNG
-* WebP → JPG
-* SVG → PNG
-* SVG → JPG
-* SVG → WebP
-* SVG → PDF
-* Multiple image → PDF
-* Image resize
-* Image quality control
-* Background color for transparent images
-* Image rotation
-* Metadata handling
-* Drag & drop upload
-* Multiple file upload
-* Image preview
-* Individual download
-
-### Documents
-
-Planned document tools:
-
-* PDF → Word
-* Word → PDF
-* Excel → PDF
-* PowerPoint → PDF
-* PDF → JPG
-* PDF → PNG
-* PDF → TXT
-* PDF → Excel
-* Merge PDF
-* Split PDF
-* Rotate PDF
-* Compress PDF
-* Protect PDF
-* Unprotect PDF
-* Markdown → HTML/PDF
-* HTML → PDF
-* TXT → PDF
-
-### Data
-
-Planned data conversion:
-
-* CSV ↔ JSON
-* CSV ↔ XLSX
-* JSON ↔ XLSX
-* JSON ↔ XML
-* JSON ↔ YAML
-* XML ↔ YAML
-
-### Audio & Video
-
-Planned multimedia conversion:
-
-* MP4 ↔ MKV
-* MP4 ↔ AVI
-* MP4 ↔ MOV
-* MP4 ↔ WEBM
-* Video → MP3
-* Video → WAV
-* Video → GIF
-* MP3 ↔ WAV
-* MP3 ↔ OGG
-* MP3 ↔ FLAC
-* MP3 ↔ M4A
+Anything not listed as implemented does not exist yet. There are no placeholder endpoints.
 
 ---
 
-## Tech Stack
+## Implemented tools
 
-### Frontend
+All tools are declared once in `src/data/tools.ts` and rendered from that single source.
 
-* Astro
-* TypeScript
-* Tailwind CSS
-* Svelte
-* Astro Islands
+| Tool | Runs in | Notes |
+| ---- | ------- | ----- |
+| PNG to JPG | Browser or server | Quality, background, resize, rotation |
+| JPG to PNG | Browser or server | Resize, rotation |
+| PNG to WebP | Browser or server | Quality, resize, rotation |
+| JPG to WebP | Browser or server | Quality, resize, rotation |
+| WebP to PNG | Browser or server | Resize, rotation |
+| WebP to JPG | Browser or server | Quality, background, resize, rotation |
+| SVG to PNG | Server | Rendered with Resvg, arbitrary output size |
+| SVG to JPG | Server | Quality and background |
+| SVG to WebP | Server | Quality and background |
+| SVG to PDF | Server | One page per SVG |
+| Image to PDF | Server | Multiple images into one multi-page PDF |
 
-### Backend
-
-* Astro SSR
-* Astro API Routes
-* Node.js
-* Sharp
-* Resvg
-* PDF-Lib
-* PDF.js
-* ExcelJS
-* PapaParse
-* Fast XML Parser
-* js-yaml
-* Archiver
-* FFmpeg
-* LibreOffice
-
-### PDF → Word
-
-PDF → Word uses a separate Python service:
-
-* FastAPI
-* pdf2docx
-
-The Python service is used because PDF → DOCX conversion generally requires document-layout processing that is better handled by dedicated Python tooling.
-
-### Database
-
-* PostgreSQL
-* Drizzle ORM
-* Drizzle Kit
-* pgAdmin 4
-
-PostgreSQL stores conversion metadata and job information.
-
-Uploaded files are **not stored directly inside PostgreSQL**.
+Server-side decoding accepts PNG, JPG/JPEG, WebP, GIF, BMP, TIFF, AVIF and SVG. HEIC/HEIF detection is implemented but returns a clear "not enabled yet" error, because it depends on the codecs available in the runtime.
 
 ---
 
-# Project Structure
+## Requirements
 
-```text
-all-in-one-file-converter/
-│
-├── public/
-│   └── favicon.svg
-│
-├── src/
-│   ├── components/
-│   │   ├── Converter.svelte
-│   │   ├── Footer.astro
-│   │   ├── Navbar.astro
-│   │   └── ToolCard.astro
-│   │
-│   ├── data/
-│   │   └── tools.ts
-│   │
-│   ├── db/
-│   │   ├── index.ts
-│   │   └── schema/
-│   │       ├── users.ts
-│   │       ├── conversion-jobs.ts
-│   │       ├── conversion-files.ts
-│   │       └── conversion-history.ts
-│   │
-│   ├── layouts/
-│   │   └── Layout.astro
-│   │
-│   ├── lib/
-│   │   ├── cleanup.ts
-│   │   └── jobs/
-│   │
-│   ├── pages/
-│   │   ├── index.astro
-│   │   ├── [slug].astro
-│   │   └── api/
-│   │       ├── image-convert.ts
-│   │       ├── jobs.ts
-│   │       └── pdf-to-word.ts
-│   │
-│   ├── styles/
-│   │   └── global.css
-│   │
-│   ├── middleware.ts
-│   └── env.d.ts
-│
-├── services/
-│   └── pdf2docx/
-│       ├── app.py
-│       ├── requirements.txt
-│       └── Dockerfile
-│
-├── storage/
-│   ├── input/
-│   ├── output/
-│   └── temp/
-│
-├── drizzle/
-│
-├── .env
-├── .env.example
-├── .gitignore
-├── astro.config.mjs
-├── drizzle.config.ts
-├── docker-compose.yml
-├── Dockerfile
-├── package.json
-├── tailwind.config.mjs
-├── tsconfig.json
-└── README.md
-```
+* Node.js 20 or newer
+* PostgreSQL 14 or newer (tested against PostgreSQL 18)
+* pgAdmin 4 for database management
 
 ---
 
-# Requirements
-
-Before running the project locally, install:
-
-* Node.js 20+
-* npm
-* PostgreSQL
-* pgAdmin 4
-* Git
-
-For document and multimedia conversion, the following are also required:
-
-* LibreOffice
-* FFmpeg
-* Python 3.11+
-
-Docker users can run these dependencies through Docker Compose.
-
----
-
-# Installation
-
-Clone the repository:
-
-```bash
-git clone <repository-url>
-cd all-in-one-file-converter
-```
+## Setup
 
 Install dependencies:
 
@@ -243,29 +74,11 @@ Install dependencies:
 npm install
 ```
 
----
+Copy the environment template and adjust the values:
 
-# PostgreSQL Setup
-
-Create a PostgreSQL database using pgAdmin or PostgreSQL CLI.
-
-Database:
-
-```text
-file_converter
+```bash
+cp .env.example .env
 ```
-
-Example configuration:
-
-```text
-Host: localhost
-Port: 5432
-Database: file_converter
-User: postgres
-Password: your_password
-```
-
-Create `.env`:
 
 ```env
 DATABASE_URL=postgresql://postgres:your_password@localhost:5432/file_converter
@@ -274,588 +87,298 @@ MAX_FILE_SIZE_MB=50
 
 TEMP_FILE_TTL_MINUTES=30
 
-PUBLIC_APP_NAME=FileForge
+PUBLIC_APP_NAME=DarConverter
 
-PDF2DOCX_URL=http://localhost:8000
+PUBLIC_MAX_FILE_SIZE_MB=50
+
+PDF2DOCX_URL=http://pdf2docx:8000
 ```
 
-Never commit `.env`.
+`.env` is ignored by Git and must never be committed.
 
----
+### Create the database
 
-# Database Migration
-
-Generate Drizzle migration:
+Using pgAdmin, or the PostgreSQL CLI:
 
 ```bash
-npm run db:generate
+createdb -h localhost -U postgres file_converter
 ```
 
-Run migration:
+Then apply the schema:
 
 ```bash
 npm run db:migrate
 ```
 
-For development, schema push can also be used:
-
-```bash
-npm run db:push
-```
-
-If Drizzle Studio is configured:
-
-```bash
-npm run db:studio
-```
-
----
-
-# Development
-
-Start the Astro development server:
+### Start the development server
 
 ```bash
 npm run dev
 ```
 
-Open:
+Open http://localhost:4321.
 
-```text
-http://localhost:4321
-```
+Useful scripts:
 
-Example converter:
-
-```text
-http://localhost:4321/png-to-jpg
+```bash
+npm run check       # Astro, TypeScript and Svelte diagnostics
+npm run build       # Production build
+npm run preview     # Run the production build
+npm run db:generate # Generate a migration from the schema
+npm run db:migrate  # Apply pending migrations
+npm run db:push     # Push the schema without a migration file
+npm run db:studio   # Open Drizzle Studio
 ```
 
 ---
 
-# Production Build
+## Database
 
-Check the project:
+PostgreSQL stores metadata only. Binary files never enter the database; they stay in temporary filesystem storage and are deleted automatically.
 
-```bash
-npm run check
+```text
+users
+  id, email (unique), password_hash, name, created_at, updated_at
+
+conversion_jobs
+  id, status, tool_slug, error_message, created_at, updated_at, expires_at
+
+conversion_files
+  id, job_id, original_name, stored_name, input_format, output_format,
+  input_size, output_size, input_path, output_path, created_at, expires_at
+
+conversion_history
+  id, job_id, user_id (nullable), tool_slug, input_format, output_format,
+  input_size, output_size, created_at
 ```
 
-Build:
+Notes:
 
-```bash
-npm run build
-```
-
-Preview the production build:
-
-```bash
-npm run preview
-```
+* Primary keys are UUIDs generated by PostgreSQL (`gen_random_uuid()`).
+* `conversion_jobs.status` is an enum: `waiting`, `processing`, `completed`, `failed`, `expired`.
+* `conversion_history.user_id` is nullable so authenticated history can be added later without a migration that rewrites existing rows.
+* Sizes use `bigint` so large multi-file PDF exports do not overflow.
+* Deleting a job cascades to `conversion_files` and `conversion_history`.
 
 ---
 
-# Database Architecture
-
-The database stores metadata, not the actual converted files.
+## Conversion flow
 
 ```text
-PostgreSQL
-│
-├── users
-│
-├── conversion_jobs
-│
-├── conversion_files
-│
-└── conversion_history
+Browser
+  -> validate file (extension, MIME, magic bytes, size)
+  -> POST /api/image-convert
+  -> conversion_jobs row (processing)
+  -> temporary input file with a UUID name
+  -> Sharp / Resvg / pdf-lib
+  -> temporary output file with a UUID name
+  -> conversion_files row
+  -> conversion_history row
+  -> conversion_jobs row (completed)
+  -> file streamed to the browser
+  -> removed later by the cleanup job
 ```
 
-A typical conversion looks like:
+If the conversion fails, temporary files are deleted immediately, the job row is marked `failed` with a readable message, and the client receives a JSON error.
 
-```text
-User
- │
- ▼
-Astro API
- │
- ├── Validate file
- │
- ├── Create conversion job
- │
- ├── Store temporary input file
- │
- ▼
-Converter
- │
- ├── Sharp
- ├── FFmpeg
- ├── LibreOffice
- └── PDF2Docx
- │
- ▼
-Temporary output
- │
- ▼
-Database metadata
- │
- ▼
-Download
- │
- ▼
-Automatic cleanup
-```
-
-Binary files are intentionally kept outside PostgreSQL to prevent the database from becoming unnecessarily large.
+Simple conversions do not touch the database at all: they run in the browser through the Canvas API.
 
 ---
 
-# Temporary Storage
-
-Uploaded and converted files are stored temporarily:
+## Temporary storage
 
 ```text
 storage/
-├── input/
-├── output/
-└── temp/
+  input/
+  output/
+  temp/
 ```
 
-Each uploaded file receives a UUID-based filename.
+The contents are ignored by Git, only `.gitkeep` files are tracked.
 
-Example:
+Rules:
 
-```text
-550e8400-e29b-41d4-a716-446655440000.png
-```
+* Every stored file gets a UUID filename, for example `550e8400-e29b-41d4-a716-446655440000.png`.
+* The original filename is never used to build a path. It is stored as metadata and sanitised before it reaches a response header.
+* Path resolution rejects anything that does not match `kind/uuid.extension`, which blocks path traversal.
+* Files expire after `TEMP_FILE_TTL_MINUTES`.
 
-The original filename is stored only as metadata.
+### Cleanup
 
-Temporary files expire based on:
+`src/lib/cleanup.ts` runs a sweep 10 seconds after the first API request and then every 5 minutes. Each sweep:
 
-```env
-TEMP_FILE_TTL_MINUTES=30
-```
+* deletes `input/`, `output/` and `temp/` files older than the TTL, using modification time;
+* marks overdue jobs as `expired`;
+* deletes jobs that expired more than an hour ago, which cascades to their file and history rows.
 
-Expired files are automatically removed by the cleanup system.
+The sweep is idempotent and never throws: a missing or already deleted file is ignored.
 
 ---
 
-# API
+## API
 
-## Image Conversion
+Responses are consistent.
 
-```http
-POST /api/image-convert
+Success:
+
+```json
+{ "success": true, "data": {} }
 ```
 
-Example:
+Error:
+
+```json
+{ "success": false, "error": "Human readable error message." }
+```
+
+### POST /api/image-convert
+
+Converts one image, or several images into one PDF. Because the result is a file, a successful response is a binary download rather than a JSON envelope. Errors always use the JSON envelope.
+
+Request: `multipart/form-data`
+
+| Field | Required | Description |
+| ----- | -------- | ----------- |
+| `file` | yes | One file, or several when `output=PDF` |
+| `output` | yes | `PNG`, `JPG`, `WEBP`, `AVIF`, `TIFF`, `GIF` or `PDF` |
+| `tool` | no | Tool slug recorded on the job |
+| `quality` | no | 1 to 100, default 85 |
+| `width`, `height` | no | Target size; the aspect ratio is preserved |
+| `background` | no | Hex colour such as `#ffffff` |
+| `rotation` | no | `0`, `90`, `180` or `270` |
+| `keepMetadata` | no | `true` keeps EXIF, ICC and IPTC data |
 
 ```bash
 curl -X POST \
+  -H "Origin: http://localhost:4321" \
   -F "file=@image.png" \
   -F "output=JPG" \
   -F "quality=85" \
+  -F "tool=png-to-jpg" \
   http://localhost:4321/api/image-convert \
   --output converted.jpg
 ```
 
----
-
-## Job Status
-
-```http
-GET /api/jobs/:id
-```
-
-Example:
-
-```bash
-curl http://localhost:4321/api/jobs/JOB_ID
-```
-
-Response:
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "JOB_ID",
-    "status": "completed",
-    "progress": 100
-  }
-}
-```
-
----
-
-## PDF → Word
-
-```http
-POST /api/pdf-to-word
-```
-
-Example:
+Multiple images into one PDF:
 
 ```bash
 curl -X POST \
-  -F "file=@document.pdf" \
-  http://localhost:4321/api/pdf-to-word \
-  --output document.docx
+  -H "Origin: http://localhost:4321" \
+  -F "file=@first.png" \
+  -F "file=@second.jpg" \
+  -F "output=PDF" \
+  http://localhost:4321/api/image-convert \
+  --output images.pdf
 ```
 
----
-
-# API Response Format
-
-Successful requests:
-
-```json
-{
-  "success": true,
-  "data": {}
-}
-```
-
-Failed requests:
-
-```json
-{
-  "success": false,
-  "error": "Something went wrong."
-}
-```
-
-The API should not expose internal stack traces to clients.
-
----
-
-# Docker
-
-Build and start the complete environment:
-
-```bash
-docker compose up --build
-```
-
-Services:
+Successful response headers:
 
 ```text
-Astro
-http://localhost:4321
-
-pgAdmin
-http://localhost:5050
-
-PDF2Docx
-http://localhost:8000
-
-PostgreSQL
-localhost:5432
+Content-Type: image/jpeg
+Content-Disposition: attachment; filename="image.jpg"
+X-Conversion-Job-Id: 1f0c…
+X-Conversion-Expires-At: 2026-01-01T10:30:00.000Z
+X-Output-Width: 320
+X-Output-Height: 200
 ```
 
-Check running containers:
+Status codes:
 
-```bash
-docker compose ps
-```
+| Code | Meaning |
+| ---- | ------- |
+| 400 | Missing file, unsupported format, extension/MIME/content mismatch |
+| 403 | Request rejected by Astro's cross-site origin protection |
+| 422 | The file was accepted but could not be decoded or encoded |
+| 503 | The database is not configured or not reachable |
 
-Stop services:
+Astro's built-in origin check is active, so requests must come from the same origin. Command-line clients have to send an `Origin` header; browsers send it automatically.
 
-```bash
-docker compose down
-```
+### Endpoints not implemented yet
 
-Stop and remove database volume:
-
-```bash
-docker compose down -v
-```
-
-The last command permanently removes the PostgreSQL Docker data volume.
+`POST /api/jobs`, `GET /api/jobs/:id`, `GET /api/jobs/:id/download` and `POST /api/pdf-to-word` arrive in Phase 2 and 3.
 
 ---
 
-# pgAdmin
+## Security
 
-Open:
+Implemented:
+
+* Upload size limit from `MAX_FILE_SIZE_MB`
+* Extension, MIME type and magic byte validation
+* UUID storage names, original names kept as metadata only
+* Path traversal protection through strict stored-path validation
+* Sanitised download filenames in `Content-Disposition`
+* `X-Content-Type-Options: nosniff` and `no-store` on responses
+* Astro origin protection on server-rendered routes
+* Automatic deletion of temporary files
+* Errors returned as readable messages, never as stack traces
+
+Not implemented yet: rate limiting and an explicit CORS policy (Phase 4). There is currently no request throttling, so do not expose this build to the public internet as-is.
+
+---
+
+## Project structure
 
 ```text
-http://localhost:5050
+src/
+  components/
+    Converter.svelte      Interactive converter island
+    Footer.astro
+    Navbar.astro
+    Toolcard.astro
+  data/
+    tools.ts              Single source of truth for every tool
+  db/
+    index.ts              Lazy pg Pool and Drizzle instance
+    schema/
+      conversion-files.ts
+      conversion-history.ts
+      conversion-jobs.ts
+      index.ts
+      users.ts
+  layouts/
+    Layouts.astro
+  lib/
+    api.ts                JSON envelope and download responses
+    cleanup.ts            Expiry sweep and scheduler
+    env.ts                Typed environment access
+    image-convert.ts      Sharp, Resvg and pdf-lib pipeline
+    storage.ts            UUID storage paths
+    validation.ts         Upload validation and magic bytes
+  pages/
+    index.astro
+    [slug].astro
+    api/
+      image-convert.ts
+  styles/
+    global.css
+  env.d.ts
+
+drizzle/                  Generated migrations
+storage/                  Temporary files, Git-ignored
+drizzle.config.ts
 ```
 
-For Docker Compose, PostgreSQL should be registered using:
+---
 
-```text
-Host: postgres
-Port: 5432
-Database: file_converter
-Username: postgres
-Password: postgres
-```
+## Testing
 
-Do not use `localhost` as the PostgreSQL host from inside the pgAdmin container.
+Phase 1 has no automated test suite. `npm run check` and `npm run build` are the automated gate; the conversion endpoints were verified manually against a running server and a real PostgreSQL database, including the validation failures and the cleanup sweep. Automated tests are scheduled for Phase 5.
 
 ---
 
-# Security
+## Known limitations
 
-The application implements or is designed to implement:
-
-* File size validation
-* MIME validation
-* Extension validation
-* Magic byte validation
-* Filename sanitization
-* UUID-based storage names
-* Path traversal protection
-* Temporary file expiration
-* API error handling
-* Rate limiting
-* CORS configuration
-* Safe process execution
-* Environment-based secrets
-
-Maximum upload size:
-
-```env
-MAX_FILE_SIZE_MB=50
-```
-
-This value can be changed through `.env`.
+* HEIC and HEIF are detected but rejected, because decoding depends on the codecs compiled into the runtime.
+* Pages produced by Image to PDF follow the proportions of each image rather than a fixed paper size.
+* Multi-page PDF embeds each page as PNG when the image has an alpha channel and as JPG otherwise, to keep the file size reasonable.
+* Temporary files live on the local filesystem, which is fine locally but would need object storage for multiple instances.
+* There is no authentication, so `conversion_history.user_id` is always null.
+* There is no rate limiting yet.
+* Tool pages are prerendered, so adding a tool requires a rebuild.
 
 ---
 
-# Browser vs Server Conversion
+## License
 
-Simple image conversions can run directly in the browser:
-
-```text
-PNG → JPG
-JPG → PNG
-PNG → WebP
-JPG → WebP
-WebP → PNG
-WebP → JPG
-```
-
-Advantages:
-
-* Faster for small files
-* No upload required
-* Better privacy
-* Lower server resource usage
-
-Heavy conversions use the server:
-
-```text
-SVG
-PDF
-DOCX
-XLSX
-PPTX
-HEIC
-Video
-Audio
-```
-
-These operations require server-side processing because browser APIs are not suitable for every format.
-
----
-
-# PDF → Word Limitations
-
-PDF → DOCX is not guaranteed to reproduce every PDF perfectly.
-
-Normal digitally generated PDFs generally provide better results.
-
-Scanned PDFs can require OCR before meaningful editable text can be extracted.
-
-Complex PDFs may contain:
-
-* Custom fonts
-* Multi-column layouts
-* Tables
-* Images
-* Vector graphics
-* Headers and footers
-* Complex positioning
-
-These elements can result in differences between the original PDF and generated DOCX.
-
-The PDF → Word service uses `pdf2docx`, but conversion quality still depends on the structure of the source PDF.
-
----
-
-# Current Development Status
-
-| Feature            | Status         |
-| ------------------ | -------------- |
-| Astro SSR          | Implemented    |
-| Tailwind CSS       | Implemented    |
-| Svelte Islands     | Implemented    |
-| Dark Mode          | Implemented    |
-| Tool Configuration | Implemented    |
-| Dynamic Tool Pages | Implemented    |
-| PostgreSQL         | Implemented    |
-| Drizzle ORM        | Implemented    |
-| pgAdmin            | Supported      |
-| PNG → JPG          | Implemented    |
-| JPG → PNG          | Implemented    |
-| PNG → WebP         | Implemented    |
-| JPG → WebP         | Implemented    |
-| WebP → PNG         | Implemented    |
-| WebP → JPG         | Implemented    |
-| SVG Conversion     | In development |
-| PDF Tools          | Planned        |
-| PDF → Word         | Planned        |
-| Office → PDF       | Planned        |
-| Data Conversion    | Planned        |
-| Audio Conversion   | Planned        |
-| Video Conversion   | Planned        |
-| Async Jobs         | Planned        |
-| Docker             | In development |
-| Automated Cleanup  | In development |
-
----
-
-# Development Phases
-
-## Phase 1
-
-Core application:
-
-* Astro
-* Svelte
-* Tailwind
-* PostgreSQL
-* Drizzle
-* pgAdmin
-* Dynamic tools
-* Image conversion
-* Basic API
-* Basic validation
-
-## Phase 2
-
-Documents and PDF:
-
-* PDF tools
-* PDF → Word
-* LibreOffice
-* FastAPI
-* PDF.js
-* Async document jobs
-
-## Phase 3
-
-Data and multimedia:
-
-* CSV
-* JSON
-* XLSX
-* XML
-* YAML
-* FFmpeg
-* Audio
-* Video
-* ZIP output
-
-## Phase 4
-
-Production improvements:
-
-* Better UI
-* SEO
-* Structured data
-* Rate limiting
-* File validation
-* Cleanup system
-* Error handling
-* Performance improvements
-
-## Phase 5
-
-Deployment:
-
-* Docker
-* Docker Compose
-* PostgreSQL container
-* pgAdmin
-* PDF2Docx service
-* LibreOffice
-* FFmpeg
-* Testing
-* Production documentation
-
----
-
-# Limitations
-
-The project currently has several technical limitations.
-
-### File Storage
-
-Temporary files are stored on the local filesystem.
-
-For a multi-instance production deployment, shared object storage such as S3-compatible storage would be more appropriate.
-
-### Rate Limiting
-
-An in-memory rate limiter works for local development but does not provide distributed rate limiting across multiple application instances.
-
-Redis can be introduced later.
-
-### PDF Conversion
-
-PDF → Word quality depends heavily on the original PDF structure.
-
-Scanned documents may require OCR.
-
-### HEIC/HEIF
-
-HEIC/HEIF support depends on the installed image processing libraries and codecs available in the runtime environment.
-
-### Large Video Files
-
-Video conversion is CPU-intensive and can take significant time.
-
-Large-scale production usage should use dedicated workers or a queue system.
-
-### PostgreSQL
-
-PostgreSQL stores metadata only.
-
-The actual files are intentionally not stored inside database columns.
-
----
-
-# Future Improvements
-
-Possible future additions:
-
-* User authentication
-* Conversion history dashboard
-* User-specific files
-* Favorites
-* Conversion presets
-* Background job queue
-* Redis
-* S3-compatible object storage
-* OCR
-* Virus scanning
-* Cloud deployment
-* Usage limits
-* API keys
-* Public conversion API
-* Admin dashboard
-* Monitoring
-* Conversion analytics
-
----
-
-# License
-
-This project is intended for educational, portfolio, and development purposes.
-
-Add the appropriate license before public distribution.
+This project is intended for educational, portfolio and development purposes. Add the appropriate license before public distribution.

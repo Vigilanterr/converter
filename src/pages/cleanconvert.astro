@@ -1,0 +1,9 @@
+---
+/**
+ * The old `/cleanconvert` route was an interface prototype that simulated
+ * conversions instead of performing them. It is retired in favour of the real
+ * converter on `/`, so the URL is kept as a permanent redirect rather than a
+ * dead end.
+ */
+return Astro.redirect("/", 301);
+---

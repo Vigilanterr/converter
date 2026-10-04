@@ -1,5 +1,5 @@
 {
-  "name": "all-in-one-file-converter",
+  "name": "darconverter",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -15,22 +15,38 @@
   },
   "dependencies": {
     "@astrojs/node": "latest",
+    "@astrojs/react": "^7.0.0",
     "@astrojs/svelte": "latest",
     "@resvg/resvg-js": "latest",
+    "archiver": "^8.0.0",
     "astro": "latest",
     "dotenv": "latest",
     "drizzle-orm": "latest",
+    "exceljs": "^4.4.0",
+    "fast-xml-parser": "^5.11.2",
+    "gsap": "^3.15.0",
+    "imagetracerjs": "^1.2.6",
+    "js-yaml": "^5.4.2",
+    "papaparse": "^5.7.0",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.3.289",
     "pg": "latest",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "sharp": "latest",
     "svelte": "latest"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/archiver": "^8.0.0",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "latest",
+    "@types/papaparse": "^5.5.2",
     "@types/pg": "latest",
     "autoprefixer": "latest",
     "drizzle-kit": "latest",
     "postcss": "latest",
     "tailwindcss": "^3.4.17",
-    "typescript": "latest"
+    "typescript": "^6.0.3"
   }
 }
